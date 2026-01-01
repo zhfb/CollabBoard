@@ -42,7 +42,7 @@ cd <repository-directory>
 2. 点击左侧导航栏的「Settings」→「Database」
 3. 在「Connection string」部分，复制「PostgreSQL Connection String」
 4. 确保URL格式为：`postgresql://<username>:<password>@<host>:<port>/<database_name>?schema=public`
-postgresql://postgres:[Huaweicloud@123456]@db.bvyioibkxjwhndvhpibg.supabase.co:5432/postgres
+
 ### 3. 配置数据库扩展（可选）
 
 如果需要使用额外的PostgreSQL扩展，可以在Supabase控制台中启用：
