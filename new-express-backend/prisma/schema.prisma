@@ -1,0 +1,122 @@
+// This is your Prisma schema file, // learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+// 用户模型
+model User {
+  id           String   @id @default(uuid())
+  username     String   @unique
+  email        String   @unique
+  passwordHash String
+  createdAt    DateTime @default(now())
+  
+  // 关系：User 1:N Board
+  boards Board[]
+  
+  // 关系：User 1:N BoardMember
+  boardMembers BoardMember[]
+  
+  // 关系：User 1:N Comment
+  comments Comment[]
+}
+
+// 角色枚举
+enum Role {
+  owner
+  editor
+  viewer
+}
+
+// 看板成员模型
+model BoardMember {
+  id        Int      @id @default(autoincrement())
+  userId    String
+  boardId   Int
+  role      Role
+  createdAt DateTime @default(now())
+  
+  // 唯一约束：一个用户在一个看板中只能有一个角色
+  @@unique([userId, boardId])
+  
+  // 关系：BoardMember N:1 User
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  // 关系：BoardMember N:1 Board
+  board Board @relation(fields: [boardId], references: [id], onDelete: Cascade)
+}
+
+// 看板模型
+model Board {
+  id        Int          @id @default(autoincrement())
+  title     String
+  ownerId   String
+  createdAt DateTime     @default(now())
+  
+  // 关系：Board N:1 User
+  owner User @relation(fields: [ownerId], references: [id])
+  
+  // 关系：Board 1:N List
+  lists List[]
+  
+  // 关系：Board 1:N BoardMember
+  members BoardMember[]
+}
+
+// 列表模型
+model List {
+  id      Int      @id @default(autoincrement())
+  title   String
+  order   Int
+  boardId Int
+  
+  // 索引：为 order 字段添加索引
+  @@index([order])
+  
+  // 关系：List N:1 Board
+  board Board @relation(fields: [boardId], references: [id], onDelete: Cascade)
+  
+  // 关系：List 1:N Card
+  cards Card[]
+}
+
+// 卡片模型
+model Card {
+  id          Int      @id @default(autoincrement())
+  title       String
+  description String?
+  order       Int
+  dueDate     DateTime?
+  listId      Int
+  labels      Json     // 使用JSON类型存储标签数组，兼容SQLite
+  
+  // 索引：为 order 字段添加索引
+  @@index([order])
+  
+  // 关系：Card N:1 List
+  list List @relation(fields: [listId], references: [id], onDelete: Cascade)
+  
+  // 关系：Card 1:N Comment
+  comments Comment[]
+}
+
+// 评论模型
+model Comment {
+  id        Int      @id @default(autoincrement())
+  text      String
+  userId    String
+  cardId    Int
+  createdAt DateTime @default(now())
+  
+  // 关系：Comment N:1 User
+  user User @relation(fields: [userId], references: [id])
+  
+  // 关系：Comment N:1 Card
+  card Card @relation(fields: [cardId], references: [id], onDelete: Cascade)
+}

@@ -1,0 +1,60 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  username  String   @unique
+  email     String   @unique
+  password  String
+  boards    Board[]  @relation("UserBoards")
+  memberOf  Board[]  @relation("BoardMembers")
+  createdAt DateTime @default(now())
+}
+
+model Board {
+  id          Int      @id @default(autoincrement())
+  title       String
+  description String?
+  color       String?  @default("#0079bf")
+  ownerId     Int
+  owner       User     @relation("UserBoards", fields: [ownerId], references: [id])
+  lists       List[]
+  members     User[]   @relation("BoardMembers")
+  createdAt   DateTime @default(now())
+}
+
+model List {
+  id       Int    @id @default(autoincrement())
+  title    String
+  order    Int    @default(0)
+  boardId  Int
+  board    Board  @relation(fields: [boardId], references: [id], onDelete: Cascade)
+  cards    Card[]
+}
+
+model Card {
+  id           Int      @id @default(autoincrement())
+  title        String
+  description  String?
+  order        Int      @default(0)
+  dueDate      DateTime?
+  listId       Int
+  list         List     @relation(fields: [listId], references: [id], onDelete: Cascade)
+  comments     Comment[]
+  labels       Json     @default("[]") // 使用Json类型存储标签，Supabase PostgreSQL支持
+}
+
+model Comment {
+  id      Int    @id @default(autoincrement())
+  text    String
+  userId  Int
+  cardId  Int
+  card    Card   @relation(fields: [cardId], references: [id])
+  createdAt DateTime @default(now())
+}

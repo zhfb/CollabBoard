@@ -1,0 +1,66 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// User model
+model User {
+  id            Int      @id @default(autoincrement())
+  username      String   @unique
+  email         String   @unique
+  password_hash String
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  // Relationships
+  boards Board[]
+}
+
+// Board model
+model Board {
+  id        Int      @id @default(autoincrement())
+  title     String
+  userId    Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  // Relationships
+  user  User  @relation(fields: [userId], references: [id])
+  lists List[]
+}
+
+// List model
+model List {
+  id        Int      @id @default(autoincrement())
+  title     String
+  boardId   Int
+  order     Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  // Relationships
+  board  Board  @relation(fields: [boardId], references: [id])
+  cards  Card[]
+}
+
+// Card model
+model Card {
+  id          Int      @id @default(autoincrement())
+  title       String
+  description String?
+  listId      Int
+  order       Int
+  dueDate     DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // Relationships
+  list  List  @relation(fields: [listId], references: [id])
+}
